@@ -52,9 +52,9 @@ class TestMain extends TestCase
             $this->assertArrayHasKey('amount', $value);
             $this->assertArrayHasKey('currency', $value);
 
-            $this->assertIsNumeric($value['bin']);
+            $this->assertNotEmpty($value['bin']);
             $this->assertIsNumeric($value['amount']);
-            $this->assertIsString($value['currency']);
+            $this->assertNotEmpty($value['currency']);
         }
     }
 
