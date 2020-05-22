@@ -50,6 +50,12 @@ class Main
     {
         foreach (explode("\n", $this->inputData) as $row) {
             $value = $this->extractDataFromRow($row);
+
+            if(!array_key_exists('bin', $value)
+                OR !array_key_exists('amount', $value)
+                OR !array_key_exists('currency', $value)
+            ) continue;
+
             $data = $this->calculate($value['bin'], floatval($value['amount']), $value['currency']);
 
             if($round) {
