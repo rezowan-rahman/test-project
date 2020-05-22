@@ -1,9 +1,4 @@
-# Project
-
-This is an attempt to solve the problem pointed here at 
-https://gist.github.com/mariusbalcytis/e73370f4d2bda302c7bd867dfeef9751
-
-## Steps
+## Installation Steps
 
 1. install composer
 2. cd to the project directory
