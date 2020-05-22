@@ -127,7 +127,7 @@ class Main
 
         $result = json_decode($result);
 
-        if(!property_exists($result, "country")) return false;
+        if(!property_exists($result, "country")) return NULL;
 
         return property_exists($result->country, 'alpha2') ? $result->country->alpha2 : NULL;
     }
