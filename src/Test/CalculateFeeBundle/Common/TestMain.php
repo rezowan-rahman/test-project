@@ -51,17 +51,16 @@ class TestMain extends TestCase
             $this->assertArrayHasKey('bin', $value);
             $this->assertArrayHasKey('amount', $value);
             $this->assertArrayHasKey('currency', $value);
+
+            $this->assertIsNumeric($value['bin']);
+            $this->assertIsNumeric($value['amount']);
+            $this->assertIsString($value['currency']);
         }
     }
 
     public function testCalculate()
     {
         $value = $this->init()->extractDataFromRow($this->getRow());
-
-        $this->assertIsNumeric($value['bin']);
-        $this->assertIsNumeric($value['amount']);
-        $this->assertIsString($value['currency']);
-
         $result = $this->init()->calculate($value['bin'], floatval($value['amount']), $value['currency']);
 
         $this->assertIsFloat($result);
