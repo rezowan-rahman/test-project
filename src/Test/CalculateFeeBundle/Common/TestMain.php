@@ -17,7 +17,7 @@ class TestMain extends TestCase
 
     private $main;
 
-    private $rowNumber = NULL;
+    private $row = NULL;
 
     public function init()
     {
@@ -33,24 +33,30 @@ class TestMain extends TestCase
 
     private function getRow()
     {
-        if($this->rowNumber == NULL) $this->rowNumber = rand(0,4);
-        return $this->rowNumber;
+        $rows = explode("\n", $this->getInputFile());
+        $max = count($rows);
+
+        if($this->row == NULL) $this->row = $rows[rand(0,$max-1)];
+        return $this->row;
     }
 
     public function testExtractDataFromRow()
     {
-        $row = explode("\n", $this->getInputFile());
-        $value = $this->init()->extractDataFromRow($row[$this->getRow()]);
+        $rows = explode("\n", $this->getInputFile());
 
-        $this->assertArrayHasKey('bin', $value);
-        $this->assertArrayHasKey('amount', $value);
-        $this->assertArrayHasKey('currency', $value);
+        foreach($rows as $row) {
+
+            $value = $this->init()->extractDataFromRow($row);
+
+            $this->assertArrayHasKey('bin', $value);
+            $this->assertArrayHasKey('amount', $value);
+            $this->assertArrayHasKey('currency', $value);
+        }
     }
 
     public function testCalculate()
     {
-        $row = explode("\n", $this->getInputFile());
-        $value = $this->init()->extractDataFromRow($row[$this->getRow()]);
+        $value = $this->init()->extractDataFromRow($this->getRow());
 
         $this->assertIsNumeric($value['bin']);
         $this->assertIsNumeric($value['amount']);
@@ -63,11 +69,10 @@ class TestMain extends TestCase
 
     public function testGetRatet()
     {
-        $row = explode("\n", $this->getInputFile());
-        $value = $this->init()->extractDataFromRow($row[$this->getRow()]);
+        $value = $this->init()->extractDataFromRow($this->getRow());
 
         $result = $this->init()->getRate($value['currency']);
-        $this->assertIsFloat($result);
+        $this->assertIsNumeric($result);
     }
 
     public function testExchageRateUrl()
@@ -79,8 +84,7 @@ class TestMain extends TestCase
 
     public function testBinListUrl()
     {
-        $row = explode("\n", $this->getInputFile());
-        $value = $this->init()->extractDataFromRow($row[$this->getRow()]);
+        $value = $this->init()->extractDataFromRow($this->getRow());
 
         $result = file_get_contents(Main::$binListUrl."/{$value['bin']}");
         $result = json_decode($result, true);
@@ -91,8 +95,7 @@ class TestMain extends TestCase
 
     public function testIsEu()
     {
-        $row = explode("\n", $this->getInputFile());
-        $value = $this->init()->extractDataFromRow($row[$this->getRow()]);
+        $value = $this->init()->extractDataFromRow($this->getRow());
 
         $result = $this->init()->isEu($value['bin']);
         $this->assertIsBool($result);
