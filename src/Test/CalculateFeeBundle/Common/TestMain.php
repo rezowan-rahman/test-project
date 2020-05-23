@@ -40,6 +40,11 @@ class TestMain extends TestCase
         return $this->row;
     }
 
+    public function testInputFileExists()
+    {
+        $this->assertFileExists(__DIR__.'/../../../../input.txt');
+    }
+
     public function testExtractDataFromRow()
     {
         $rows = explode("\n", $this->getInputFile());
