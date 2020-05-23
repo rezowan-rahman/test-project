@@ -26,9 +26,14 @@ class TestMain extends TestCase
         return $this->main;
     }
 
+    public function getFileName()
+    {
+        return __DIR__.'/../../../../input.txt';
+    }
+
     public function getInputFile()
     {
-        return file_get_contents(__DIR__.'/../../../../input.txt');
+        return file_get_contents($this->getFileName());
     }
 
     private function getRow()
@@ -42,7 +47,7 @@ class TestMain extends TestCase
 
     public function testInputFileExists()
     {
-        $this->assertFileExists(__DIR__.'/../../../../input.txt');
+        $this->assertFileExists($this->getFileName());
     }
 
     public function testExtractDataFromRow()
