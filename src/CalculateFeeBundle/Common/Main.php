@@ -8,30 +8,14 @@
 
 namespace CalculateFeeBundle\Common;
 
+use CalculateFeeBundle\DataSource\Data;
+
 class Main
 {
-    const EU_DATA = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR','HU', 'IE', 'IT', 'LT','LU',
-        'LV', 'MT', 'NL', 'PO', 'PT', 'RO', 'SE', 'SI', 'SK'];
-
     /**
      * @var string
      */
     private $inputData;
-
-    /**
-     * @var string
-     */
-    public static $exchangeRateUrl = "https://api.exchangeratesapi.io/latest";
-
-    /**
-     * @var string
-     */
-    public static $binListUrl = "https://lookup.binlist.net";
-
-    /**
-     * @var array
-     */
-    private $exchangeList = [];
 
 
     /**
@@ -69,12 +53,10 @@ class Main
 
     public function calculate(int $bin, float $amount, string $currency)
     {
-        $binResult = $this->isEu($bin);
         $rate = $this->getRate($currency);
-
         $amntFixed = $rate == 0 ? $amount : $amount / $rate;
 
-        return $amntFixed * ($binResult ? 0.01 : 0.02);
+        return $amntFixed * Data::getDividant($bin);
     }
 
     /**
@@ -101,40 +83,12 @@ class Main
 
     /**
      * @param $value
-     * @return string|null
+     * @return int
      */
     public function getRate($value)
     {
-        if(count($this->exchangeList) <= 0) {
-            $result = file_get_contents(static::$exchangeRateUrl);
-            if(!$result) return NULL;
-
-            $this->exchangeList = json_decode($result, true);
-        }
-
-        if(!array_key_exists('rates', $this->exchangeList)) return 0;
-        return array_key_exists($value, $this->exchangeList['rates']) ? $this->exchangeList['rates'][$value]: 0;
-    }
-
-    /**
-     * @param $value
-     * @return bool
-     */
-    private function getEuValueFromList($value)
-    {
-        $result = file_get_contents(static::$binListUrl."/{$value}");
-        if (!$result) return false;
-
-        $result = json_decode($result);
-
-        if(!property_exists($result, "country")) return NULL;
-
-        return property_exists($result->country, 'alpha2') ? $result->country->alpha2 : NULL;
-    }
-
-    public function isEu($value)
-    {
-        $response = $this->getEuValueFromList($value);
-        return in_array($response, self::EU_DATA);
+        $response = Data::getExchageRate();
+        if(!array_key_exists('rates', $response)) return 0;
+        return array_key_exists($value, $response['rates']) ? $response['rates'][$value]: 0;
     }
 }
