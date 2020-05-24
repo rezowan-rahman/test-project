@@ -1,5 +1,10 @@
 {
     "autoload": {
+        "config":{
+            "platform": {
+                "php": "7.2"
+            }
+        },
         "classmap": [
             "src/"
         ]
