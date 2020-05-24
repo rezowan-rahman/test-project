@@ -24,7 +24,12 @@ class Main
      */
     public function __construct(string $inputData)
     {
-        $this->inputData = trim($inputData);
+        $this->inputData = $inputData;
+    }
+
+    public function getRowsFromInputData()
+    {
+        return explode("\n", trim($this->inputData));
     }
 
     /**
@@ -33,7 +38,7 @@ class Main
     public function printInStdOut($round = false)
     {
         $str = '';
-        foreach (explode("\n", $this->inputData) as $row) {
+        foreach ($this->getRowsFromInputData() as $row) {
             $value = $this->extractDataFromRow($row);
 
             $data = $this->calculate($value['bin'], floatval($value['amount']), $value['currency']);

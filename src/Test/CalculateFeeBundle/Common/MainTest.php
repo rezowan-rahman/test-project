@@ -32,15 +32,13 @@ class MainTest extends TestCase
 
     public static function getInputFile()
     {
-        return trim(file_get_contents(self::getFileName()));
+        return file_get_contents(self::getFileName());
     }
 
     public static function getRow()
     {
-        $rows = explode("\n", self::getInputFile());
-        $max = count($rows);
-
-        return $rows[rand(0,$max-1)];
+        $rows = self::init()->getRowsFromInputData();
+        return $rows[count($rows) -1];
     }
 
     public function testInputFileExists()
@@ -57,9 +55,7 @@ class MainTest extends TestCase
 
     public function testExtractDataFromRow()
     {
-        $rows = explode("\n", self::getInputFile());
-
-        foreach($rows as $row) {
+        foreach(self::init()->getRowsFromInputData() as $row) {
 
             $value = self::init()->extractDataFromRow($row);
 
