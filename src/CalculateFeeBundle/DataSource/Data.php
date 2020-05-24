@@ -68,7 +68,7 @@ class Data
     public static function getDividant($bin)
     {
         $response = self::getBinDetails($bin);
-        return (float) in_array($response['country']['alpha2'], self::getEuData()) ? 0.01 : 0.02;
+        return (float) in_array(strtoupper($response['country']['alpha2']), self::getEuData()) ? 0.01 : 0.02;
     }
 
 
