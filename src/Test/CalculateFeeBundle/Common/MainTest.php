@@ -32,7 +32,7 @@ class MainTest extends TestCase
 
     public static function getInputFile()
     {
-        return file_get_contents(self::getFileName());
+        return trim(file_get_contents(self::getFileName()));
     }
 
     public static function getRow()
@@ -46,6 +46,13 @@ class MainTest extends TestCase
     public function testInputFileExists()
     {
         $this->assertFileExists(self::getFileName());
+    }
+
+    public function testPrintInStdOut()
+    {
+        $output = self::init()->printInStdOut(true);
+        $this->assertIsString($output);
+        $this->assertRegExp('/\d*\.?\d*\\n/', $output);
     }
 
     public function testExtractDataFromRow()
