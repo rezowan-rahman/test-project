@@ -8,6 +8,8 @@
 
 namespace Test\CalculateFeeBundle\Common;
 
+use CalculateFeeBundle\DataSource\Data;
+use Mockery\Mock;
 use PHPUnit\Framework\TestCase;
 
 use CalculateFeeBundle\Common\Main;
@@ -15,73 +17,67 @@ use CalculateFeeBundle\Common\Main;
 class MainTest extends TestCase
 {
 
-    public static $main;
+    /**
+     * @var Main
+     */
+    private $main;
 
-    public static function init()
+    /**
+     * @var Mock
+     */
+    private $data;
+
+    public function setUp(): void
     {
-        if(!self::$main instanceof Main) {
-            self::$main = new Main(self::getInputFile());
-        }
-        return self::$main;
+        parent::setUp();
+
+        $this->data = \Mockery::mock(Data::class);
+        $this->main = new Main($this->getInputFile(), $this->data);
     }
 
-    public static function getFileName()
+    public function getFileName()
     {
         return __DIR__.'/../../../../input.txt';
     }
 
-    public static function getInputFile()
+    public function getInputFile()
     {
-        return file_get_contents(self::getFileName());
+        return file_get_contents($this->getFileName());
     }
 
-    public static function getRow()
+    public function testFileExists()
     {
-        $rows = self::init()->getRowsFromInputData();
-        return $rows[count($rows) -1];
+        $this->assertFileExists($this->getFileName());
     }
 
-    public function testInputFileExists()
+    public function testCalculatewithRateNonZero()
     {
-        $this->assertFileExists(self::getFileName());
-    }
+        $bin = "4745030";
+        $amount = 2000.00;
+        $currency = "GBP";
 
-    public function testPrintInStdOut()
-    {
-        $output = self::init()->printInStdOut(true);
-        $this->assertIsString($output);
-        $this->assertRegExp('/\d*\.?\d*\\n/', $output);
-    }
+        $this->data->shouldReceive('getRateData')->with($currency)->andReturn(0.89515);
+        $this->data->shouldReceive('getBinData')->with($bin)->andReturn('GB');
 
-    public function testExtractDataFromRow()
-    {
-        foreach(self::init()->getRowsFromInputData() as $row) {
-
-            $value = self::init()->extractDataFromRow($row);
-
-            $this->assertArrayHasKey('bin', $value);
-            $this->assertArrayHasKey('amount', $value);
-            $this->assertArrayHasKey('currency', $value);
-
-            $this->assertNotEmpty($value['bin']);
-            $this->assertIsNumeric($value['amount']);
-            $this->assertNotEmpty($value['currency']);
-        }
-    }
-
-    public function testCalculate()
-    {
-        $value = self::init()->extractDataFromRow(self::getRow());
-        $result = self::init()->calculate($value['bin'], floatval($value['amount']), $value['currency']);
+        $result = $this->main->calculate($bin, $amount, $currency);
 
         $this->assertIsFloat($result);
+        $this->assertEquals(44.69, number_format($result, 2));
     }
 
-    public function testGetRate()
+    public function testCalculatewithRateZero()
     {
-        $value = self::init()->extractDataFromRow(self::getRow());
+        $bin = "45417360";
+        $amount = 100.00;
+        $currency = "EUR";
 
-        $result = $this->init()->getRate($value['currency']);
-        $this->assertIsNumeric($result);
+        $this->data->shouldReceive('getRateData')->with($currency)->andReturn(0);
+        $this->data->shouldReceive('getBinData')->with($bin)->andReturn('DK');
+
+        $result = $this->main->calculate($bin, $amount, $currency);
+
+        $this->assertIsFloat($result);
+        $this->assertEquals(1.00, number_format($result, 2));
     }
+
 }

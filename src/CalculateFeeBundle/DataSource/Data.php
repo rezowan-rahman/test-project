@@ -8,7 +8,10 @@
 
 namespace CalculateFeeBundle\DataSource;
 
-class Data
+use CalculateFeeBundle\Common\Contract\DataInterface;
+use JsonSchema\Exception\InvalidSchemaException;
+
+class Data implements DataInterface
 {
 
     const EU_DATA = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR','HU', 'IE', 'IT', 'LT','LU',
@@ -17,59 +20,73 @@ class Data
     /**
      * @var string
      */
-    public static $exchangeRateUrl = "https://api.exchangeratesapi.io/latest";
+    private $rateUrl = "https://api.exchangeratesapi.io/latest";
 
     /**
      * @var string
      */
-    public static $binListUrl = "https://lookup.binlist.net";
-
-    /**
-     * @var array
-     */
-    public static $exchangeList = [];
+    private $binUrl = "https://lookup.binlist.net";
 
 
-    /**
-     * @return array
-     */
-    public static function getEuData()
+    public function getRateUrl()
     {
-        return self::EU_DATA;
+        return $this->rateUrl;
+    }
+
+    public function setRateUrl(string $rateUrl)
+    {
+        return $this->rateUrl = $rateUrl;
+    }
+
+    public function getBinUrl(string $bin)
+    {
+        return $this->binUrl."/".$bin;
+    }
+
+    public function setBinUrl(string $binUrl)
+    {
+        return $this->binUrl = $binUrl;
+    }
+
+
+    public function auth()
+    {
+        /**
+         * TO-DO
+         */
     }
 
     /**
-     * @param $bin
-     * @return array|mixed
+     * @param string $bin
+     * @return mixed
      */
-    public static function getBinDetails($bin)
+    public function getBinData($bin)
     {
-        $result = file_get_contents(static::$binListUrl."/{$bin}");
-        if(!$result) return [];
+        $url = $this->getBinUrl($bin);
+        $result = json_decode(file_get_contents($url), true);
 
-        return json_decode($result, true);
+        try{
+            return $result['country']['alpha2'];
+        } catch(\Exception $e) {
+            throw new InvalidSchemaException("alpha2 code not found for {$bin}", 400);
+        }
     }
 
     /**
-     * @return array|mixed
+     * @param string $currency
+     * @return int
      */
-    public static function getExchageRate()
+    public function getRateData($currency)
     {
-        if(count(static::$exchangeList) <= 0) {
-            $result = file_get_contents(static::$exchangeRateUrl);
-            if(!$result) return [];
+        $url = $this->getRateUrl();
+        $result = json_decode(file_get_contents($url), true);
 
-            static::$exchangeList = json_decode($result, true);
+        if(!array_key_exists("rates", $result)) {
+            throw new InvalidSchemaException("rates not found in".$result, 400);
         }
 
-        return static::$exchangeList;
-    }
+        return !array_key_exists($currency, $result['rates']) ? 0: $result['rates'][$currency];
 
-    public static function getDividant($bin)
-    {
-        $response = self::getBinDetails($bin);
-        return (float) in_array(strtoupper($response['country']['alpha2']), self::getEuData()) ? 0.01 : 0.02;
     }
-
 
 }
