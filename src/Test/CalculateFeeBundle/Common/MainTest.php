@@ -8,6 +8,8 @@
 
 namespace Test\CalculateFeeBundle\Common;
 
+use CalculateFeeBundle\Common\Contract\DataInterface;
+use CalculateFeeBundle\Common\Contract\ProviderInterface;
 use CalculateFeeBundle\DataSource\Data;
 use Mockery\Mock;
 use PHPUnit\Framework\TestCase;
@@ -27,12 +29,18 @@ class MainTest extends TestCase
      */
     private $data;
 
+    /**
+     * @var Mock
+     */
+    private $provider;
+
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->data = \Mockery::mock(Data::class);
-        $this->main = new Main($this->getInputFile(), $this->data);
+        $this->data     = \Mockery::mock(DataInterface::class);
+        $this->provider = \Mockery::mock(ProviderInterface::class);
+        $this->main     = new Main($this->getInputFile(), $this->data, $this->provider);
     }
 
     public function getFileName()
@@ -58,6 +66,7 @@ class MainTest extends TestCase
 
         $this->data->shouldReceive('getRateData')->with($currency)->andReturn(0.89515);
         $this->data->shouldReceive('getBinData')->with($bin)->andReturn('GB');
+        $this->provider->shouldReceive('getDividant')->with('GB')->andReturn(0.02);
 
         $result = $this->main->calculate($bin, $amount, $currency);
 
@@ -73,6 +82,7 @@ class MainTest extends TestCase
 
         $this->data->shouldReceive('getRateData')->with($currency)->andReturn(0);
         $this->data->shouldReceive('getBinData')->with($bin)->andReturn('DK');
+        $this->provider->shouldReceive('getDividant')->with('DK')->andReturn(0.01);
 
         $result = $this->main->calculate($bin, $amount, $currency);
 
