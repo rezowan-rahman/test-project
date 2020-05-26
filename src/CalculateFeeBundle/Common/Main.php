@@ -49,7 +49,7 @@ class Main
             $data = $this->calculate($value['bin'], $value['amount'], $value['currency']);
 
             if($round) {
-                $data = round($data, 2);
+                $data = number_format($data, 2);
             }
 
             $str .= "{$data}\n";

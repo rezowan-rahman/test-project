@@ -7,4 +7,4 @@ use CalculateFeeBundle\Common\Main;
 $inputData = file_get_contents($argv[1]);
 $data = new \CalculateFeeBundle\DataSource\Data();
 $app = new Main($inputData, $data);
-$app->printInStdOut($round = false);
+$app->printInStdOut($round = true);

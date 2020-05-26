@@ -38,9 +38,9 @@ class Data implements DataInterface
         return $this->rateUrl = $rateUrl;
     }
 
-    public function getBinUrl(string $bin)
+    public function getBinUrl()
     {
-        return $this->binUrl."/".$bin;
+        return $this->binUrl;
     }
 
     public function setBinUrl(string $binUrl)
@@ -62,7 +62,7 @@ class Data implements DataInterface
      */
     public function getBinData($bin)
     {
-        $url = $this->getBinUrl($bin);
+        $url = $this->binUrl."/".$bin;
         $result = json_decode(file_get_contents($url), true);
 
         try{

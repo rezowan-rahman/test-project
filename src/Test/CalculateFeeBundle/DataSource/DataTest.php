@@ -37,13 +37,11 @@ class DataTest extends TestCase
 
     public function testSetBinUrl()
     {
-        $exampleUrl = "http://example.com/bin";
-        $binValue = '1234';
-        $data = new Data();
+        $exampleUrl = "http://example.com/bin/1234";
 
         $this->dataClass->setBinUrl($exampleUrl);
-        $this->assertIsString($this->dataClass->getBinUrl($binValue));
-        $this->assertEquals($exampleUrl.'/'.$binValue, $this->dataClass->getBinUrl($binValue));
+        $this->assertIsString($this->dataClass->getBinUrl());
+        $this->assertEquals($exampleUrl, $this->dataClass->getBinUrl());
     }
 
     public function testGetBinData()
