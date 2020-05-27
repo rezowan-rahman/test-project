@@ -12,6 +12,7 @@ namespace CalculateFeeBundle\DataSource;
 use CalculateFeeBundle\Common\Contract\BinProviderInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 
 class BinProvider implements BinProviderInterface
 {
@@ -54,22 +55,26 @@ class BinProvider implements BinProviderInterface
 
     public function authenticate()
     {
-        // TODO: Implement authenticate() method.
+        return true;
     }
 
     /**
-     * @return \ArrayObject
+     * @return array
      */
     public function getProviderData()
     {
         try {
-            $result = $this->client->get($this->getUrl());
+            $response = $this->client->get($this->getUrl());
         } catch (ClientException $e) {
-            throw new \Exception($e->getMessage(), $e->getCode());
+            $response = $e->getResponse();
+        } catch (ServerException $e) {
+            $response = $e->getResponse();
         }
 
-        $resultDecoded = json_decode($result->getBody());
-        return new \ArrayObject($resultDecoded);
+        return [
+            "statusCode"        => $response->getStatusCode(),
+            'responseObject'    => json_decode($response->getBody())
+        ];
     }
 
     /**
@@ -81,7 +86,8 @@ class BinProvider implements BinProviderInterface
         $data = $this->getProviderData();
 
         try{
-            return $data['country']->alpha2;
+            $response = $data['responseObject'];
+            return $response->country->alpha2;
         } catch(\Exception $e) {
             throw new \Exception($e->getMessage(), 404);
         }

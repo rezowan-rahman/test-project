@@ -53,18 +53,18 @@ class Main
      */
     public function printInStdOut($round)
     {
-        $str = $this->processData($round);
-        print $str;
+        $data = $this->processData($round);
+        print(implode("\n", $data));
     }
 
 
     /**
      * @param $round
-     * @return string
+     * @return array
      */
     private function processData($round)
     {
-        $str = '';
+        $result = array();
 
         foreach (explode("\n", trim($this->inputData)) as $row) {
             $value = json_decode($row, true);
@@ -80,10 +80,10 @@ class Main
                 $data = number_format($data, 2);
             }
 
-            $str .= "{$data}\n";
+            array_push($result, $data);
         }
 
-        return $str;
+        return $result;
     }
 
 

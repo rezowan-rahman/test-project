@@ -73,10 +73,30 @@ RESPONSE;
         $this->assertEquals($url, $this->provider->getUrl());
     }
 
+    public function testAuthentication()
+    {
+        $result = $this->provider->authenticate();
+        $this->assertEquals(true, $result);
+    }
+
     public function testGetProviderData()
     {
         $result = $this->provider->getProviderData();
-        $this->assertIsObject($result);
+        $this->assertIsObject($result['responseObject']);
+    }
+
+    public function testGetProviderDataException()
+    {
+        $this->provider = new BinProvider($this->getMockClient(403, [], NULL));
+        $result = $this->provider->getProviderData();
+        $this->assertEquals(403, $result['statusCode']);
+    }
+
+    public function testGetProviderDataServerException()
+    {
+        $this->provider = new BinProvider($this->getMockClient(504, [], NULL));
+        $result = $this->provider->getProviderData();
+        $this->assertEquals(504, $result['statusCode']);
     }
 
     public function testAlpha2IfExists()
