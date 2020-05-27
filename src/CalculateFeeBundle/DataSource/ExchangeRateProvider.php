@@ -13,6 +13,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\BadResponseException;
 use JsonSchema\Exception\InvalidSchemaException;
+use JsonSchema\Exception\ResourceNotFoundException;
+use Mockery\Exception;
 
 class ExchangeRateProvider implements ExchangeRateProviderInterface
 {
@@ -76,7 +78,7 @@ class ExchangeRateProvider implements ExchangeRateProviderInterface
         try {
             $result = $this->client->get($this->getUrl());
         } catch (ClientException $e) {
-            throw new BadResponseException();
+            throw new Exception($e->getMessage(), $e->getCode());
         }
 
         $this->response = new \ArrayObject(json_decode($result->getBody()));
@@ -86,13 +88,14 @@ class ExchangeRateProvider implements ExchangeRateProviderInterface
     /**
      * @param $currency
      * @return int
+     * @throws \Exception
      */
     public function getRate($currency)
     {
         $data = $this->getProviderData();
 
         if(!array_key_exists('rates', $data)) {
-            throw new \Exception();
+            throw new \Exception("rates does not exist", 404);
         }
 
         return property_exists($data['rates'], $currency) ? $data['rates']->$currency : 0;
