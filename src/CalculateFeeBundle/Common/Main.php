@@ -8,23 +8,28 @@
 
 namespace CalculateFeeBundle\Common;
 
-use CalculateFeeBundle\Common\Contract\DataInterface;
+use CalculateFeeBundle\Common\Contract\BinProviderInterface;
+use CalculateFeeBundle\Common\Contract\ExchangeRateProviderInterface;
 use CalculateFeeBundle\Common\Contract\ProviderInterface;
-use JsonSchema\Exception\InvalidSchemaException;
-use Mockery\Exception;
 
 
 class Main
 {
+
     /**
      * @var string
      */
     private $inputData;
 
     /**
-     * @var DataInterface
+     * @var BinProviderInterface
      */
-    private $dataModel;
+    private $binProvider;
+
+    /**
+     * @var ExchangeRateProviderInterface
+     */
+    private $exchangeRateProvider;
 
     /**
      * @var ProviderInterface
@@ -32,46 +37,65 @@ class Main
     private $provider;
 
 
-    /**
-     * Main constructor.
-     * @param string $inputData
-     * @param DataInterface $dataModel
-     * @param ProviderInterface $provider
-     */
-    public function __construct(string $inputData, DataInterface $dataModel, ProviderInterface $provider)
+
+    public function __construct(string $inputData, BinProviderInterface $binProvider, ExchangeRateProviderInterface $exchangeRateProvider,
+                                ProviderInterface $provider)
     {
-        $this->inputData    = $inputData;
-        $this->dataModel    = $dataModel;
-        $this->provider     = $provider;
+        $this->inputData            = $inputData;
+        $this->binProvider          = $binProvider;
+        $this->exchangeRateProvider = $exchangeRateProvider;
+        $this->provider             = $provider;
     }
 
-    public function printInStdOut($round = false)
+
+    /**
+     * @param $round
+     */
+    public function printInStdOut($round)
     {
-        try {
-            $str = '';
-            foreach (explode("\n", trim($this->inputData)) as $row) {
-                $value = json_decode($row, true);
+        $str = $this->processData($round);
+        print $str;
+    }
 
-                if (!array_key_exists('bin', $value)
-                    AND !array_key_exists('amount', $value)
-                    AND !array_key_exists('currency', $value)
-                ) continue;
 
-                $data = $this->calculate($value['bin'], $value['amount'], $value['currency']);
+    /**
+     * @param $round
+     * @return string
+     */
+    private function processData($round)
+    {
+        $str = '';
 
-                if ($round) {
-                    $data = number_format($data, 2);
-                }
+        foreach (explode("\n", trim($this->inputData)) as $row) {
+            $value = json_decode($row, true);
 
-                $str .= "{$data}\n";
-                print "{$data}\n";
+            if (!array_key_exists('bin', $value)
+                AND !array_key_exists('amount', $value)
+                AND !array_key_exists('currency', $value)
+            ) continue;
+
+            $data = $this->calculate($value['bin'], $value['amount'], $value['currency']);
+
+            if($round == true) {
+                $data = number_format($data, 2);
             }
 
-            return $str;
-        } catch (\Exception $e) {
-            throw new InvalidSchemaException("{$row} might not be a valid json");
+            $str .= "{$data}\n";
         }
+
+        return $str;
     }
+
+
+    /**
+     * @param $bin
+     * @return BinProviderInterface
+     */
+    public function setBinUrl($bin)
+    {
+        return $this->binProvider->setUrl(sprintf("https://lookup.binlist.net/%s", $bin));
+    }
+
 
     /**
      * @param string $bin
@@ -80,10 +104,12 @@ class Main
      *
      * @return float
      */
-    public function calculate(string $bin, float $amount, string $currency) :float
+    public function calculate(string $bin, float $amount, string $currency)
     {
-        $rate = $this->dataModel->getRateData($currency);
-        $alpha2Code = $this->dataModel->getBinData($bin);
+        $binProvider = $this->setBinUrl($bin);
+        $alpha2Code = $binProvider->getAlpha2Value();
+
+        $rate = $this->exchangeRateProvider->getRate($currency);
 
         $amntFixed = $rate == 0 ? $amount : $amount / $rate;
 
