@@ -88,7 +88,7 @@ RESPONSE;
 
     public function testSetUrl()
     {
-        $url = "https://bin.example.com/binValue";
+        $url = "https://exchageRate.example.com";
         $this->provider->setUrl($url);
         $this->assertEquals($url, $this->provider->getUrl());
     }

@@ -11,9 +11,7 @@ namespace CalculateFeeBundle\DataSource;
 
 use CalculateFeeBundle\Common\Contract\BinProviderInterface;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
-use JsonSchema\Exception\InvalidSchemaException;
 
 class BinProvider implements BinProviderInterface
 {
@@ -67,7 +65,7 @@ class BinProvider implements BinProviderInterface
         try {
             $result = $this->client->get($this->getUrl());
         } catch (ClientException $e) {
-            throw new BadResponseException();
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
 
         $resultDecoded = json_decode($result->getBody());
@@ -85,7 +83,7 @@ class BinProvider implements BinProviderInterface
         try{
             return $data['country']->alpha2;
         } catch(\Exception $e) {
-            throw new \Exception();
+            throw new \Exception($e->getMessage(), 404);
         }
     }
 }
