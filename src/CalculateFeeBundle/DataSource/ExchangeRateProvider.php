@@ -11,10 +11,7 @@ namespace CalculateFeeBundle\DataSource;
 use CalculateFeeBundle\Common\Contract\ExchangeRateProviderInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\BadResponseException;
-use JsonSchema\Exception\InvalidSchemaException;
-use JsonSchema\Exception\ResourceNotFoundException;
-use Mockery\Exception;
+use GuzzleHttp\Exception\ServerException;
 
 class ExchangeRateProvider implements ExchangeRateProviderInterface
 {
@@ -28,10 +25,11 @@ class ExchangeRateProvider implements ExchangeRateProviderInterface
      */
     private $client;
 
+
     /**
-     * @var \ArrayObject
+     * @var array
      */
-    private $response;
+    public static $response;
 
     /**
      * ExchangeRateProvider constructor.
@@ -63,26 +61,27 @@ class ExchangeRateProvider implements ExchangeRateProviderInterface
 
     public function authenticate()
     {
-        // TODO: Implement authenticate() method.
+        return true;
     }
 
     /**
-     * @return \ArrayObject
+     * @return array
      */
     public function getProviderData()
     {
-        if($this->response != NULL) {
-            return $this->response;
-        }
-
         try {
-            $result = $this->client->get($this->getUrl());
+            $response = $this->client->get($this->getUrl());
         } catch (ClientException $e) {
-            throw new Exception($e->getMessage(), $e->getCode());
+            $response = $e->getResponse();
+        } catch (ServerException $e) {
+            $response = $e->getResponse();
         }
 
-        $this->response = new \ArrayObject(json_decode($result->getBody()));
-        return $this->response;
+        return [
+            "statusCode"        => $response->getStatusCode(),
+            'responseObject'    => json_decode($response->getBody())
+        ];
+
     }
 
     /**
@@ -92,13 +91,13 @@ class ExchangeRateProvider implements ExchangeRateProviderInterface
      */
     public function getRate($currency)
     {
-        $data = $this->getProviderData();
+        $data = $this->getProviderData()['responseObject'];
 
-        if(!array_key_exists('rates', $data)) {
+        if(!property_exists($data, 'rates')) {
             throw new \Exception("rates does not exist", 404);
         }
 
-        return property_exists($data['rates'], $currency) ? $data['rates']->$currency : 0;
+        return property_exists($data->rates, $currency) ? $data->rates->$currency : 0;
     }
 
 }

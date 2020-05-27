@@ -11,7 +11,6 @@ namespace Test\CalculateFeeBundle\DataSource;
 
 use CalculateFeeBundle\DataSource\ExchangeRateProvider;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
@@ -93,10 +92,30 @@ RESPONSE;
         $this->assertEquals($url, $this->provider->getUrl());
     }
 
+    public function testAuthenticate()
+    {
+        $result = $this->provider->authenticate();
+        $this->assertEquals(true, $result);
+    }
+
     public function testGetProviderData()
     {
         $result = $this->provider->getProviderData();
-        $this->assertIsObject($result);
+        $this->assertIsObject($result['responseObject']);
+    }
+
+    public function testGetProviderDataClientException()
+    {
+        $this->provider = new ExchangeRateProvider($this->getMockClient(403, [], NULL));
+        $result = $this->provider->getProviderData();
+        $this->assertEquals(403, $result['statusCode']);
+    }
+
+    public function testGetProviderDataServerException()
+    {
+        $this->provider = new ExchangeRateProvider($this->getMockClient(504, [], NULL));
+        $result = $this->provider->getProviderData();
+        $this->assertEquals(504, $result['statusCode']);
     }
 
     public function testGetRateIfExists()
