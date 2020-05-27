@@ -13,7 +13,7 @@ use CalculateFeeBundle\Common\Contract\ProviderInterface;
 use CalculateFeeBundle\DataSource\CommissionProvider;
 use PHPUnit\Framework\TestCase;
 
-class ProviderTest extends TestCase
+class CommissionProviderTest extends TestCase
 {
     /**
      * @var ProviderInterface
